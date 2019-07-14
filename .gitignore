@@ -1,0 +1,5 @@
+/env
+/dados
+.vscode
+*.log
+*.zip

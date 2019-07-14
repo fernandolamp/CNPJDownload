@@ -1,0 +1,4 @@
+beautifulsoup4==4.6.3
+requests==2.19.1
+lxml==4.2.4
+tqdm==4.32.2
