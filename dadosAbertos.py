@@ -23,7 +23,7 @@ def download(outfname,zipurl,threadNumber):
         try:  
             #r.iter_content(chunk_size=1024):
             with open(outfname, 'wb') as fd:            
-                for chunk in tqdm(r.iter_content(1024),unit_divisor=1024, total=math.ceil(fsize/1024) , unit='KB', unit_scale=True,desc=outfname,position=threadNumber,miniters=1):
+                for chunk in tqdm(r.iter_content(1024),ascii=True, unit_divisor=1024, total=math.ceil(fsize/1024) , unit='KB', unit_scale=True,desc=outfname,position=threadNumber):
                     if chunk: # ignore keep-alive requests
                         fd.write(chunk)                                       
                 fd.close()
@@ -93,19 +93,23 @@ if __name__ == "__main__":
             args = [outfname,zipurl,threadNum]
 
             if maxThreads == 1:
-                download(outfname,zipurl,threadNum)
+                p = Process(target=download,args=[outfname,zipurl,threadNum])
+                p.start()
+                p.join()
+                #download(outfname,zipurl,threadNum)
                 continue
 
             threadNum+=1
             listArgs.append(args)
-                
+            
+            
     if maxThreads > threadNum+1:
         maxThreads = threadNum+1  
     
     if maxThreads > 1 :
-        p = Pool(maxThreads,initializer=tqdm.set_lock, initargs=(RLock(),)) #para funcionar no windows    
-        #p.imap_unordered(download,listArgs)
+        p = Pool(maxThreads,initializer=tqdm.set_lock,maxtasksperchild=1,initargs=(RLock(),)) #para funcionar no windows    
         p.starmap(download,listArgs)
         p.close()
         p.join()     
+        #print('\n' "Fim de processamento")
         #main(sys.argv[1:])            
