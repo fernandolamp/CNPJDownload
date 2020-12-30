@@ -28,7 +28,7 @@ Baixe o arquivo `dadosAbertos.py` e o arquivo `requirements.txt` para qualquer p
 
 Instale as dependências:
 ```
-python3 install requirements.txt -r
+pip install -r requirements.txt
 ```
 
 ### Utilização
