@@ -12,10 +12,21 @@ from tqdm import trange, tqdm
 import math
 import threading
 from multiprocessing import Pool, freeze_support, RLock,Process
+from threading import Lock
 
+def file_is_downloaded(outfname,zipurl):
+    if (os.path.isfile(outfname)):
+        r = requests.get(zipurl, stream=True)
+        fsize = int(r.headers['content-length'])
+        r.close
+        if (os.path.getsize(outfname) >= fsize):
+            print("Arquivo {0} já está baixado, ignorar".format(outfname))
+            return True
+    return False
   
 def download(outfname,zipurl,threadNumber):
-    #mbyte = 1024*1024
+    mbyte = 1024*1024
+    kb = 1024
     r = requests.get(zipurl, stream=True)
     if( r.status_code == requests.codes.ok ) :
         fsize = int(r.headers['content-length'])
@@ -23,9 +34,8 @@ def download(outfname,zipurl,threadNumber):
         try:  
             #r.iter_content(chunk_size=1024):
             with open(outfname, 'wb') as fd:            
-                for chunk in tqdm(r.iter_content(1024),ascii=True, unit_divisor=1024, total=math.ceil(fsize/1024) , unit='KB', unit_scale=True,desc=outfname,position=threadNumber):
-                    if chunk: # ignore keep-alive requests
-                        fd.write(chunk)                                       
+                for chunk in tqdm(r.iter_content(kb),ascii=True, unit_divisor=1024, total=math.ceil(fsize/kb), unit='KB ', unit_scale=False,desc=outfname,position=threadNumber):                    
+                    fd.write(chunk)                                       
                 fd.close()
                 #logging.info("Download Conlcuido {0}".format(outfname)) 
         except Exception as e:
@@ -84,13 +94,16 @@ if __name__ == "__main__":
 
     threadNum = 0
     listArgs = []    
-    for file in files:
+    for file in files:        
         zipurl = file['href']
-        
+              
         if( zipurl.endswith('.zip') ):
             filename =zipurl.split('/')[-1]
             outfname = os.path.join(outpath,filename)                    
             args = [outfname,zipurl,threadNum]
+
+            if file_is_downloaded(outfname,zipurl):
+                continue
 
             if maxThreads == 1:
                 p = Process(target=download,args=[outfname,zipurl,threadNum])
@@ -107,7 +120,11 @@ if __name__ == "__main__":
         maxThreads = threadNum+1  
     
     if maxThreads > 1 :
-        p = Pool(maxThreads,initializer=tqdm.set_lock,maxtasksperchild=1,initargs=(RLock(),)) #para funcionar no windows    
+        tqdm.set_lock(RLock())
+        ##tqdm.get_lock()
+        #tqdm.get_lock().locks = []
+        p = Pool(maxThreads,initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
+        #p = Pool(maxThreads,initializer=tqdm.set_lock,maxtasksperchild=None,initargs=(tqdm.get_lock(),)) #para funcionar no windows    
         p.starmap(download,listArgs)
         p.close()
         p.join()     
