@@ -1,3 +1,8 @@
+# Projeto descontinuado, resolvi reescrever de forma mais simples em .net https://github.com/fernandolamp/CNPJDownload.Net 
+
+O link que é usado também foi alterado pelo governo, portanto esse projeto não está funcionando.
+
+
 # Dados públicos CNPJ - Auxiliador para download dos zips
 
 Software desenvolvido para auxiliar no download dos CNPJ do site da receita http://receita.economia.gov.br/orientacao/tributaria/cadastros/cadastro-nacional-de-pessoas-juridicas-cnpj/dados-publicos-cnpj
